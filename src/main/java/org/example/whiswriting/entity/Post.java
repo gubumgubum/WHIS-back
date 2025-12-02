@@ -1,36 +1,45 @@
 package org.example.whiswriting.entity;
 
+
 import jakarta.persistence.*;
+import jdk.jfr.Category;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "posts")
 public class Post {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(nullable = false)
-    private String title;
+    @Entity
+    @Table(name = "post")
+    public class Post {
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @Column(nullable = false)
-    private String author;
+        @Column(nullable = false)
+        private String title;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+        @Column(nullable = false, columnDefinition = "TEXT")
+        private String content;
 
+        @Column(nullable = false)
+        private String author; // 익명이어도 DB에는 저장
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public String getAuthor() { return author; }
-    public void setAuthor(String author) { this.author = author; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private Category category;
+
+        @Column(nullable = false)
+        private boolean anonymous;
+
+        @Column(columnDefinition = "TEXT")
+        private String images; // JSON 저장
+
+        @Column(columnDefinition = "TEXT")
+        private String links;  // JSON 저장
+
+        @Column(nullable = false)
+        private LocalDateTime createdAt = LocalDateTime.now();
+    }
+
 }
