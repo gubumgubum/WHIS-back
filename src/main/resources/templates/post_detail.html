@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www/thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="/comment/create" method="post">
+    <textarea name="content" placeholder="댓글을 입력하세요" required></textarea>
+</form>
+
+<hr>
+<div th:each="comment : ${commentList}" style="border-bottom: 1px solid #eee; padding: 10px;">
+    <p th:text="${comment.content}" style="white-space: pre-wrap; font-weight: bold;"></p>
+    <small th:text="${comment.createDate}"></small>
+    <a th:href="@{|/comment/delete/${comment.id}|}" style="color:red;">삭제</a>
+
+    <div th:each="reply : ${comment.replies}" style="margin-left: 30px; background: #f9f9f9; padding: 5px;">
+        <p th:text="${reply.content}" style="white-space: pre-wrap;"></p>
+        <small th:text="${reply.createDate}"></small>
+        <a th:href="@{|/comment/delete/${reply.id}|}" style="color:red;">삭제</a>
+    </div>
+
+    <form th:action="@{|/reply/create/${comment.id}|}" method="post" style="margin-left: 30px; margin-top: 10px;">
+        <textarea name="content" placeholder="답글을 입력하세요" rows="1" required></textarea>
+    </form>
+</div>
+<script>
+    const textareas = document.querySelectorAll('textarea');
+
+    textareas.forEach(textarea => {
+        textarea.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+
+                event.preventDefault();
+
+                if (this.value.trim() !== "") {
+                    this.form.submit();
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
