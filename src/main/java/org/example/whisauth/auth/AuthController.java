@@ -20,7 +20,7 @@ public class AuthController {
         authService.signup(dto);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/signin")
     public Map<String, String> login(@RequestBody LoginRequestDto dto) {
         String accessToken = authService.login(dto);
         return Map.of("accessToken", accessToken);

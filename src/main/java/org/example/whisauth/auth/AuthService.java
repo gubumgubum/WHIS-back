@@ -44,7 +44,7 @@ public class AuthService {
         validateEmail(dto.getEmail());
 
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자"));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다"));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new RuntimeException("비밀번호 불일치");
