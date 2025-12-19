@@ -1,10 +1,8 @@
 package org.example.whisauth.auth;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -16,8 +14,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public void signup(@RequestBody SignupRequestDto dto) {
-        authService.signup(dto);
+    public void signup(
+            @RequestPart SignupRequestDto dto,
+            @RequestPart(required = false) MultipartFile profileImage
+    ) {
+        authService.signup(dto, profileImage);
     }
 
     @PostMapping("/signin")
