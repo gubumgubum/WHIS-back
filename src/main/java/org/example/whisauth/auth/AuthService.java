@@ -36,12 +36,13 @@ public class AuthService {
 
     public String login(LoginRequestDto dto) {
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+                .orElseThrow(() -> new IllegalArgumentException("존해하지 않는 사용자입니다."));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호 틀림");
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
         return jwtProvider.createAccessToken(user.getId());
     }
 }
+// 아메일 제한 삭제
