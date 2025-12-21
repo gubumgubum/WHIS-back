@@ -23,6 +23,13 @@ public class CommentController {
         return commentRepository.findByUserId(userId);
     }
 
+    @GetMapping("/comment/count/{postId}")
+    @ResponseBody
+    public long getCommentCount(@PathVariable("postId") Long postId) {
+        // DB에서 해당 게시글의 댓글 개수를 가져와 반환합니다.
+        return commentRepository.countByPostId(postId);
+    }
+
     // 2. 댓글 목록 페이지 (post_detail.html 연결)
     @GetMapping("/comment")
     public String list(Model model) {
