@@ -23,14 +23,16 @@ public class JwtProvider {
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
                 .compact();
     }
+
 
     public Long getUserId(String token) {
         return Long.parseLong(
                 Jwts.parser()
-                        .setSigningKey(secretKey)
+                        .setSigningKey(secretKey.getBytes()) // 여기도 .getBytes() 추가
                         .parseClaimsJws(token)
                         .getBody()
                         .getSubject()

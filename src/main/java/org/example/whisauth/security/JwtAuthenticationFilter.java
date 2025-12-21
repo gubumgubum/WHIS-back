@@ -31,19 +31,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
+        // 토큰이 있는 경우에만 인증 로직 실행
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            Long userId = jwtProvider.getUserId(token);
+            try {
+                String token = header.substring(7);
+                Long userId = jwtProvider.getUserId(token);
 
-            User user = userRepository.findById(userId).orElseThrow();
-
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(user, null, List.of());
-
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                // 유저가 없을 경우 예외를 던지지 않고 그냥 넘어가도록 수정
+                userRepository.findById(userId).ifPresent(user -> {
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(user, null, List.of());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                });
+            } catch (Exception e) {
+                // 토큰 파싱 중 에러(만료 등)가 나도 일단 필터는 통과시켜야 permitAll이 작동함
+                logger.error("Could not set user authentication in security context", e);
+            }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // 반드시 실행되어야 함
     }
 }
 
