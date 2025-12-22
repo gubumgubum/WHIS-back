@@ -1,6 +1,6 @@
 package com.example.idea.comment.model;
 
-import com.example.idea.entity.Post;
+import com.example.idea.comment.entity.Post;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.example.idea.Notification.notification;
+package com.example.idea.comment.notification;
 
 import jakarta.persistence.*;
 import lombok.Getter;

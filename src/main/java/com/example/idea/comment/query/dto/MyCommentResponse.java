@@ -1,5 +1,5 @@
 // 경로: src/main/java/com/example/idea/query/dto/MyCommentResponse.java
-package com.example.idea.query.dto;
+package com.example.idea.comment.query.dto;
 
 import java.time.LocalDateTime;
 

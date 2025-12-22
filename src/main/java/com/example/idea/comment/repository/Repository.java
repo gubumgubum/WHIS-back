@@ -1,7 +1,6 @@
 // 경로: src/main/java/com/example/idea/repository/CommentRepository.java
-package com.example.idea.repository;
+package com.example.idea.comment.repository;
 
-import com.example.idea.repository.Repository; // 엔티티 위치 확인!
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,13 +1,15 @@
 package com.example.idea.comment.controller;
 
-import com.example.idea.Notification.notification.notification;
-import com.example.idea.Notification.notification.NotificationRepository;
+import com.example.idea.alarm.repository.AlarmRepository;
+import com.example.idea.alarm.model.Alarm;
+import com.example.idea.comment.notification.notification;
+import com.example.idea.comment.notification.NotificationRepository;
 import com.example.idea.comment.model.Comment;
 import com.example.idea.comment.model.Report;
 import com.example.idea.comment.repository.CommentRepository;
 import com.example.idea.comment.repository.PostRepository;
 import com.example.idea.comment.repository.ReportRepository;
-import com.example.idea.entity.Post;
+import com.example.idea.comment.entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,6 +89,8 @@ public class CommentController {
         return savedComment; // 👈 리다이렉트 대신 생성된 객체를 반환합니다.
     }
 
+    @Autowired
+    private AlarmRepository alarmRepository;
     // 5. 댓글 신고
     @PostMapping("/report")
     public String report(@RequestParam Long commentId,
@@ -100,6 +104,12 @@ public class CommentController {
         report.setReporterId(reporterId);
         report.setReason(reason);
         reportRepository.save(report);
+
+        Alarm alarm = new Alarm();
+        alarm.setReceiverId(reporterId);
+        alarm.setMessage("신고가 접수되었습니다: " + reason);
+        alarm.setType("REPORT");
+        alarmRepository.save(alarm);
 
         return "신고가 접수되었습니다."; // 👈 성공 메시지 반환
     }

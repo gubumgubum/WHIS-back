@@ -1,6 +1,5 @@
-package com.example.idea.Notification.notification;
+package com.example.idea.comment.notification;
 
-import com.example.idea.Notification.notification.NotificationRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

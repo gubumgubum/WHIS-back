@@ -1,4 +1,4 @@
-package com.example.idea.entity;
+package com.example.idea.comment.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

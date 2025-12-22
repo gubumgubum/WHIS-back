@@ -1,8 +1,8 @@
 // 경로: src/main/java/com/example/idea/query/service/CommentService.java
-package com.example.idea.query.service;
+package com.example.idea.comment.query.service;
 
-import com.example.idea.query.dto.MyCommentResponse;
-import com.example.idea.repository.Repository;
+import com.example.idea.comment.query.dto.MyCommentResponse;
+import com.example.idea.comment.repository.Repository;
 // 중요: Comment 엔티티 경로
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
