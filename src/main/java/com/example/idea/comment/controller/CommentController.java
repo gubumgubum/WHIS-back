@@ -1,5 +1,6 @@
 package com.example.idea.comment.controller;
 
+import com.example.idea.alarm.service.*;
 import com.example.idea.alarm.repository.AlarmRepository;
 import com.example.idea.alarm.model.Alarm;
 import com.example.idea.comment.notification.notification;
@@ -90,28 +91,28 @@ public class CommentController {
     }
 
     @Autowired
-    private AlarmRepository alarmRepository;
-    // 5. 댓글 신고
+    private AlarmService alarmService; // 👈 서비스 주입
+
     @PostMapping("/report")
     public String report(@RequestParam Long commentId,
                          @RequestParam Long reporterId,
                          @RequestParam String reason) {
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다."));
 
+        // 1. 신고 데이터 저장 (Controller의 본래 역할)
         Report report = new Report();
         report.setComment(comment);
         report.setReporterId(reporterId);
         report.setReason(reason);
         reportRepository.save(report);
 
-        Alarm alarm = new Alarm();
-        alarm.setReceiverId(reporterId);
-        alarm.setMessage("신고가 접수되었습니다: " + reason);
-        alarm.setType("REPORT");
-        alarmRepository.save(alarm);
+        // 2, 3번 삭제 후 서비스 호출로 대체!
+        alarmService.sendReportConfirmation(reporterId, reason); // 신고자 알림
+        alarmService.sendReportWarning(comment.getUserId(), "댓글"); // 피신고자 알림
 
-        return "신고가 접수되었습니다."; // 👈 성공 메시지 반환
+        return "신고가 접수되었습니다.";
     }
 
     // 6. 알림 조회
