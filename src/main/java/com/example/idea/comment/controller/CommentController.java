@@ -9,73 +9,51 @@ import com.example.idea.comment.repository.PostRepository;
 import com.example.idea.comment.repository.ReportRepository;
 import com.example.idea.entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Controller
+// 1. @Controller 대신 @RestController를 사용하면 모든 메서드에 @ResponseBody가 붙은 효과가 납니다.
+@RestController
+@RequestMapping("/comment") // 경로에 /api를 붙여주는 것이 관례입니다.
+@CrossOrigin(origins = "*")    // 프론트엔드 연결을 위한 CORS 허용
 public class CommentController {
 
-    @Autowired
-    private CommentRepository commentRepository;
+    @Autowired private CommentRepository commentRepository;
+    @Autowired private PostRepository postRepository;
+    @Autowired private NotificationRepository notificationRepository;
+    @Autowired private ReportRepository reportRepository;
 
-    // 1. (API) 내가 쓴 댓글 조회 기능 추가
-    @GetMapping("/comment/check-my")
-    @ResponseBody // JSON 데이터를 반환하기 위함
+    // 1. 내가 쓴 댓글 조회 (JSON 반환)
+    @GetMapping("/check-my")
     public List<Comment> getMyComments(@RequestParam("userId") Long userId) {
         return commentRepository.findByUserId(userId);
     }
 
-    @GetMapping("/comment/check-num")
-    @ResponseBody
+    // 2. 댓글 개수 조회
+    @GetMapping("/check-num")
     public long getCommentCount(@RequestParam Long postId) {
-        // DB에서 해당 게시글의 댓글 개수를 가져와 반환합니다.
         return commentRepository.countByPostId(postId);
     }
 
-    // 2. 댓글 목록 페이지 (post_detail.html 연결)
-    @GetMapping("/comment")
-    public String list(Model model) {
-        // 1. 모든 댓글 목록 가져오기
-        List<Comment> commentList = this.commentRepository.findAll()
+    // 3. 댓글 목록 조회 (기존의 list 메서드 대체)
+    @GetMapping("/list")
+    public List<Comment> getCommentList() {
+        // 부모 댓글이 없는(최상위 댓글) 것들만 가져와서 반환
+        return this.commentRepository.findAll()
                 .stream()
                 .filter(c -> c.getParent() == null)
                 .collect(Collectors.toList());
-        model.addAttribute("commentList", commentList);
-
-        // 2. 중요: HTML의 ${post.id}를 위해 게시글 정보를 모델에 담기
-        // 테스트를 위해 우선 ID가 1인 게시글을 가져오도록 설정합니다.
-        Post post = this.postRepository.findById(1L).orElse(null);
-
-        // 만약 DB에 게시글이 하나도 없다면 에러 방지를 위해 가짜 객체라도 넣어줍니다.
-        if (post == null) {
-            post = new Post();
-            post.setId(1L);
-        }
-
-        model.addAttribute("post", post); // 👈 이제 HTML에서 ${post.id}를 쓸 수 있습니다!
-
-        return "post_detail";
     }
 
-    @Autowired
-    PostRepository postRepository;
-
-    @Autowired
-    private NotificationRepository notificationRepository;
-
-    // 댓글 작성 및 알림 발송
-    // CommentController.java 의 create 메서드 수정 예시
-
-    @PostMapping("/comment/post")
-    public String create(@RequestParam String content,
-                         @RequestParam Long userId,
-                         @RequestParam Long postId,
-                         @RequestParam(required = false) Long parentId) { // 👈 parentId 추가
+    // 4. 댓글 및 답글 작성
+    @PostMapping("/post")
+    public Comment create(@RequestParam String content,
+                          @RequestParam Long userId,
+                          @RequestParam Long postId,
+                          @RequestParam(required = false) Long parentId) {
 
         Comment c = new Comment();
         c.setContent(content);
@@ -86,73 +64,59 @@ public class CommentController {
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
         c.setPost(post);
 
-        // 답글일 경우 부모 댓글 설정
         Comment parentComment = null;
         if (parentId != null) {
             parentComment = this.commentRepository.findById(parentId).orElse(null);
             c.setParent(parentComment);
         }
-        this.commentRepository.save(c);
 
-        // --- 알림 생성 로직 ---
+        Comment savedComment = this.commentRepository.save(c);
+
+        // --- 알림 생성 로직 (동일) ---
         notification note = new notification();
-
         if (parentComment != null) {
-            // [답글 알림] 알림 받을 사람: 원댓글 작성자
             note.setReceiverId(parentComment.getUserId());
             note.setMessage("회원님의 댓글에 답글이 달렸습니다: " + content);
         } else {
-            // [댓글 알림] 알림 받을 사람: 게시글 작성자
             note.setReceiverId(post.getUserId());
             note.setMessage("회원님의 게시글 '" + post.getTitle() + "'에 새 댓글이 달렸습니다.");
         }
-
         note.setRead(false);
         this.notificationRepository.save(note);
 
-        return "redirect:/comment";
+        return savedComment; // 👈 리다이렉트 대신 생성된 객체를 반환합니다.
     }
 
-    @Autowired
-    private ReportRepository reportRepository; // 추가
-
-    // --- 추가: 댓글 신고 API ---
-    @PostMapping("/comment/report")
+    // 5. 댓글 신고
+    @PostMapping("/report")
     public String report(@RequestParam Long commentId,
                          @RequestParam Long reporterId,
                          @RequestParam String reason) {
-
-        // 1. 신고 대상 댓글이 존재하는지 확인
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다."));
 
-        // 2. 신고 객체 생성 및 저장
         Report report = new Report();
         report.setComment(comment);
         report.setReporterId(reporterId);
         report.setReason(reason);
         reportRepository.save(report);
 
-        return "redirect:/comment"; // 신고 후 목록으로 이동
+        return "신고가 접수되었습니다."; // 👈 성공 메시지 반환
     }
 
-    // 1. 알림 조회 API
-    @GetMapping("/comment/notification")
-    @ResponseBody // JSON 형태로 알림 목록을 반환합니다.
+    // 6. 알림 조회
+    @GetMapping("/notification")
     public List<notification> getNotifications(@RequestParam("userId") Long userId) {
-        // DB에서 해당 사용자의 읽지 않은 알림만 가져옵니다.
         return notificationRepository.findByReceiverIdAndIsReadFalse(userId);
     }
 
-    // 알림 읽음 처리 API
-    @PostMapping("/comment/notification/read")
-    @ResponseBody
+    // 7. 알림 읽음 처리
+    @PostMapping("/notification/read")
     public String markAsRead(@RequestParam("notificationId") Long notificationId) {
         notification note = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new IllegalArgumentException("알림이 존재하지 않습니다."));
-        note.setRead(true); // 읽음 상태로 변경
+        note.setRead(true);
         notificationRepository.save(note);
         return "success";
     }
-
 }
