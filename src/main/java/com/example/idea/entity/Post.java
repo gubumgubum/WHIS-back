@@ -17,4 +17,6 @@ public class Post {
     private String content;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private Long userId;
 }
