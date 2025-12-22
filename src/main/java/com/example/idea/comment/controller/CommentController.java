@@ -1,7 +1,11 @@
 package com.example.idea.comment.controller;
 
 import com.example.idea.comment.model.Comment;
+import com.example.idea.comment.model.Report;
 import com.example.idea.comment.repository.CommentRepository;
+import com.example.idea.comment.repository.PostRepository;
+import com.example.idea.comment.repository.ReportRepository;
+import com.example.idea.entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,9 +21,9 @@ public class CommentController {
     private CommentRepository commentRepository;
 
     // 1. (API) 내가 쓴 댓글 조회 기능 추가
-    @GetMapping("/api/comments/my/{userId}")
+    @GetMapping("/comment/my_uid")
     @ResponseBody // JSON 데이터를 반환하기 위함
-    public List<Comment> getMyComments(@PathVariable("userId") Long userId) {
+    public List<Comment> getMyComments(@RequestParam("userId") Long userId) {
         return commentRepository.findByUserId(userId);
     }
 
@@ -33,22 +37,74 @@ public class CommentController {
     // 2. 댓글 목록 페이지 (post_detail.html 연결)
     @GetMapping("/comment")
     public String list(Model model) {
+        // 1. 모든 댓글 목록 가져오기
         List<Comment> commentList = this.commentRepository.findAll()
                 .stream()
-                .filter(c -> c.getParent() == null) // getParent() 에러 해결
+                .filter(c -> c.getParent() == null)
                 .collect(Collectors.toList());
         model.addAttribute("commentList", commentList);
+
+        // 2. 중요: HTML의 ${post.id}를 위해 게시글 정보를 모델에 담기
+        // 테스트를 위해 우선 ID가 1인 게시글을 가져오도록 설정합니다.
+        Post post = this.postRepository.findById(1L).orElse(null);
+
+        // 만약 DB에 게시글이 하나도 없다면 에러 방지를 위해 가짜 객체라도 넣어줍니다.
+        if (post == null) {
+            post = new Post();
+            post.setId(1L);
+        }
+
+        model.addAttribute("post", post); // 👈 이제 HTML에서 ${post.id}를 쓸 수 있습니다!
+
         return "post_detail";
     }
 
-    // 3. 댓글 생성 (setCreatedAt으로 이름 수정)
+    @Autowired
+    PostRepository postRepository;
+
     @PostMapping("/comment/create")
-    public String create(@RequestParam String content, @RequestParam Long userId) {
+    public String create(@RequestParam String content,
+                         @RequestParam Long userId,
+                         @RequestParam Long postId) {
+
+        // 1. 객체 생성
         Comment c = new Comment();
         c.setContent(content);
-        c.setUserId(userId); // 작성자 저장
-        c.setCreatedAt(LocalDateTime.now()); //
+        c.setUserId(userId);
+        c.setCreatedAt(LocalDateTime.now());
+
+        // 2. 게시글 연결 (PostRepository 사용)
+        // .findById()를 통해 실제 DB에 있는 게시글을 가져옵니다.
+        Post post = this.postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        c.setPost(post);
+
+        // 3. 저장 및 리다이렉트
         this.commentRepository.save(c);
         return "redirect:/comment";
     }
+
+    @Autowired
+    private ReportRepository reportRepository; // 추가
+
+    // --- 추가: 댓글 신고 API ---
+    @PostMapping("/comment/report")
+    public String report(@RequestParam Long commentId,
+                         @RequestParam Long reporterId,
+                         @RequestParam String reason) {
+
+        // 1. 신고 대상 댓글이 존재하는지 확인
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다."));
+
+        // 2. 신고 객체 생성 및 저장
+        Report report = new Report();
+        report.setComment(comment);
+        report.setReporterId(reporterId);
+        report.setReason(reason);
+        reportRepository.save(report);
+
+        return "redirect:/comment"; // 신고 후 목록으로 이동
+    }
+
 }

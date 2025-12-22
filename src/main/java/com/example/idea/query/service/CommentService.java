@@ -2,7 +2,7 @@
 package com.example.idea.query.service;
 
 import com.example.idea.query.dto.MyCommentResponse;
-import com.example.idea.repository.CommentRepository;
+import com.example.idea.repository.Repository;
 // 중요: Comment 엔티티 경로
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommentService {
 
-    private final CommentRepository commentRepository;
+    private final Repository commentRepository;
 
     public List<MyCommentResponse> getMyComments(Long userId) {
         return commentRepository.findAllByUserIdWithPost(userId).stream()

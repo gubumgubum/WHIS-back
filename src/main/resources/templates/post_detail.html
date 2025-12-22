@@ -6,6 +6,10 @@
 </head>
 <body>
 <form action="/comment/create" method="post">
+    <input type="hidden" name="userId" value="1">
+
+    <input type="hidden" name="postId" th:value="${post.id}">
+
     <textarea name="content" placeholder="댓글을 입력하세요" required></textarea>
 </form>
 
@@ -22,6 +26,8 @@
     </div>
 
     <form th:action="@{|/reply/create/${comment.id}|}" method="post" style="margin-left: 30px; margin-top: 10px;">
+        <input type="hidden" name="userId" value="1">
+
         <textarea name="content" placeholder="답글을 입력하세요" rows="1" required></textarea>
     </form>
 </div>
