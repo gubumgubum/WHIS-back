@@ -68,10 +68,14 @@ public class CommentController {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    @PostMapping("/comment/create")
+    // 댓글 작성 및 알림 발송
+    // CommentController.java 의 create 메서드 수정 예시
+
+    @PostMapping("/comment/post")
     public String create(@RequestParam String content,
                          @RequestParam Long userId,
-                         @RequestParam Long postId) {
+                         @RequestParam Long postId,
+                         @RequestParam(required = false) Long parentId) { // 👈 parentId 추가
 
         Comment c = new Comment();
         c.setContent(content);
@@ -81,15 +85,29 @@ public class CommentController {
         Post post = this.postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
         c.setPost(post);
+
+        // 답글일 경우 부모 댓글 설정
+        Comment parentComment = null;
+        if (parentId != null) {
+            parentComment = this.commentRepository.findById(parentId).orElse(null);
+            c.setParent(parentComment);
+        }
         this.commentRepository.save(c);
 
-        // 2. 알림 생성 (내가 만든 Notification 클래스 사용)
+        // --- 알림 생성 로직 ---
         notification note = new notification();
-        // Post 엔티티에 getUserId()와 getTitle()이 있는지 확인하세요.
-        note.setReceiverId(post.getUserId());
-        note.setMessage("회원님의 게시글 '" + post.getTitle() + "'에 새 댓글이 달렸습니다.");
-        note.setRead(false);
 
+        if (parentComment != null) {
+            // [답글 알림] 알림 받을 사람: 원댓글 작성자
+            note.setReceiverId(parentComment.getUserId());
+            note.setMessage("회원님의 댓글에 답글이 달렸습니다: " + content);
+        } else {
+            // [댓글 알림] 알림 받을 사람: 게시글 작성자
+            note.setReceiverId(post.getUserId());
+            note.setMessage("회원님의 게시글 '" + post.getTitle() + "'에 새 댓글이 달렸습니다.");
+        }
+
+        note.setRead(false);
         this.notificationRepository.save(note);
 
         return "redirect:/comment";

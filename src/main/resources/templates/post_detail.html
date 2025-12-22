@@ -16,12 +16,12 @@
 <hr>
 <div th:each="comment : ${commentList}" style="border-bottom: 1px solid #eee; padding: 10px;">
     <p th:text="${comment.content}" style="white-space: pre-wrap; font-weight: bold;"></p>
-    <small th:text="${comment.createDate}"></small>
+    <small th:text="${comment.createdAt}"></small>
     <a th:href="@{|/comment/delete/${comment.id}|}" style="color:red;">삭제</a>
 
-    <div th:each="reply : ${comment.replies}" style="margin-left: 30px; background: #f9f9f9; padding: 5px;">
+    <div th:each="reply : ${comment.children}" style="margin-left: 30px; background: #f9f9f9; padding: 5px;">
         <p th:text="${reply.content}" style="white-space: pre-wrap;"></p>
-        <small th:text="${reply.createDate}"></small>
+        <small th:text="${reply.createdAt}"></small>
         <a th:href="@{|/comment/delete/${reply.id}|}" style="color:red;">삭제</a>
     </div>
 
