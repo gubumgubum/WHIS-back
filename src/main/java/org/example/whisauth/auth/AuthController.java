@@ -1,6 +1,7 @@
 package org.example.whisauth.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,5 +27,12 @@ public class AuthController {
         String accessToken = authService.login(dto);
         return Map.of("accessToken", accessToken);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        authService.logout();
+        return ResponseEntity.ok().build();
+    }
 }
+
 

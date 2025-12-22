@@ -19,27 +19,25 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // POST 테스트를 위해 필수
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // permitAll()이 제대로 작동하려면 경로 설정을 더 명확히 합니다.
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                                "/auth/signup",
+                                "/auth/login"
+                        ).permitAll()
+                        .requestMatchers("/auth/logout").authenticated()
                         .anyRequest().authenticated()
                 );
-
-        // 🔥 JWT 필터 내부 로직이 permitAll 경로에서도 돌아가는지 확인해야 합니다.
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
 }
