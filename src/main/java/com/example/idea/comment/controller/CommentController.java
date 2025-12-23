@@ -2,6 +2,7 @@ package com.example.idea.comment.controller;
 
 import com.example.idea.alarm.repository.AlarmRepository;
 import com.example.idea.alarm.model.Alarm;
+import com.example.idea.comment.dto.MyCommentResponse;
 import com.example.idea.comment.notification.notification;
 import com.example.idea.comment.notification.NotificationRepository;
 import com.example.idea.comment.model.Comment;
@@ -42,14 +43,18 @@ public class CommentController {
 
     // 3. 댓글 목록 조회 (기존의 list 메서드 대체)
     @GetMapping("/list")
-    public List<Comment> getCommentList() {
-        // 부모 댓글이 없는(최상위 댓글) 것들만 가져와서 반환
-        return this.commentRepository.findAll()
-                .stream()
-                .filter(c -> c.getParent() == null)
+    public List<MyCommentResponse> getCommentList() {
+        // 이제 n+1 문제 없이 한 번에 데이터를 가져옵니다.
+        return this.commentRepository.findAllRootCommentsWithPost().stream()
+                .map(c -> new MyCommentResponse(
+                        c.getId(),
+                        c.getContent(),
+                        c.getCreatedAt(),
+                        c.getPost().getId(),
+                        c.getPost().getTitle()
+                ))
                 .collect(Collectors.toList());
     }
-
     // 4. 댓글 및 답글 작성
     @PostMapping("/post")
     public Comment create(@RequestParam String content,
