@@ -45,4 +45,12 @@ public class AlarmController {
         alarmService.sendReportProgress(reporterId, status);
         return "신고자에게 진행 상황 알림이 발송되었습니다.";
     }
+
+    // 신고 접수 알림: POST /alarm/report
+    @PostMapping("/report")
+    public String sendReportConfirmation(@RequestParam Long reporterId,
+                                         @RequestParam String reason) {
+        alarmService.sendReportConfirmation(reporterId, reason);
+        return "신고 접수 알림이 신고자에게 발송되었습니다.";
+    }
 }
