@@ -4,34 +4,31 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Alarm {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     private String message;
 
+    @Column(name = "is_read")
     private boolean isRead;
 
     private LocalDateTime createdAt;
 
-    @Builder
-    public Alarm(User user, String message, boolean isRead, LocalDateTime createdAt) {
-        this.user = user;
-        this.message = message;
-        this.isRead = isRead;
-        this.createdAt = createdAt;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }
+
 

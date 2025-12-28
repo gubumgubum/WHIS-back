@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -18,15 +17,17 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public void signup(
-            @RequestPart SignupRequestDto dto,
-            @RequestPart(required = false) MultipartFile profileImage
+    public ResponseEntity<Void> signup(
+            @RequestBody SignupRequestDto dto
     ) {
-        authService.signup(dto, profileImage);
+        authService.signup(dto);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/signin")
-    public Map<String, String> login(@RequestBody LoginRequestDto dto) {
+    public Map<String, String> login(
+            @RequestBody LoginRequestDto dto
+    ) {
         String accessToken = authService.login(dto);
         return Map.of("accessToken", accessToken);
     }
@@ -36,17 +37,17 @@ public class AuthController {
         authService.logout();
         return ResponseEntity.ok().build();
     }
-    @Configuration
-    public class WebConfig implements WebMvcConfigurer {
+
+    @Configuration  
+    public static class WebConfig implements WebMvcConfigurer {
+
         @Override
         public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**")
                     .allowedOrigins("http://localhost:3000")
-                    .allowedMethods("GET", "POST", "OPTIONS")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                    .allowedHeaders("*")
                     .allowCredentials(true);
         }
     }
-
 }
-
-

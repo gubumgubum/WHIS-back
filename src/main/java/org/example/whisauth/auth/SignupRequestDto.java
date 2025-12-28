@@ -24,6 +24,4 @@ public class SignupRequestDto {
 
     private Integer grade;
 
-
-
 }
