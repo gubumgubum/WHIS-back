@@ -1,6 +1,7 @@
 package org.example.postlike.controller;
 
 import org.example.postlike.dto.LikeDto;
+import org.example.postlike.dto.PostResponseDto;
 import org.example.postlike.service.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,8 @@ public class LikeController {
 
     // 3. 좋아요 한 글 조회 (GET /like/check-post)
     @GetMapping("/like/check-post")
-    public ResponseEntity<List<Long>> checkLikedPosts(@RequestParam Long userId) {
+    // ★ 중요: 반환 타입을 List<Long>에서 List<PostResponseDto>로 변경해야 합니다.
+    public ResponseEntity<List<PostResponseDto>> checkLikedPosts(@RequestParam Long userId) {
         return ResponseEntity.ok(likeService.getLikedPosts(userId));
     }
 
