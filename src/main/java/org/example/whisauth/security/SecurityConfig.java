@@ -49,7 +49,7 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://192.168.1.23:3000"
+                "http://192.168.1.81"
         ));
 
         config.setAllowedMethods(List.of(
